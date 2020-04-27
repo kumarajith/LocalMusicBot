@@ -35,6 +35,7 @@ module.exports = {
             let matches = fuseInstance.search(searchTerm);
             let fileName = '';
             if (matches.length == 0) {
+                message.channel.send("No matching songs found");
                 return;
             }
             fileName = matches[0].item.name;
