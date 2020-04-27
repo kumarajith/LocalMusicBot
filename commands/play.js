@@ -12,7 +12,7 @@ const options = {
     // findAllMatches: false,
     // minMatchCharLength: 1,
     // location: 0,
-    threshold: 1.0,
+    threshold: 0.3,
     // distance: 100,
     // useExtendedSearch: false,
     keys: ['name']
@@ -40,7 +40,7 @@ module.exports = {
             }
             fileName = matches[0].item.name;
             queue.push(fileName);
-            message.channel.send("Added to queue: " + fileName);
+            message.channel.send("Added to queue: " + fileName.substr(0, fileName.length - 4));
             const connection = await message.member.voice.channel.join();
             connection.on('error', error => {
                 console.log("error in voice connection");
@@ -53,7 +53,7 @@ module.exports = {
                 dispatcher = connection.play(musicpath + queue[0]);
                 
                 dispatcher.on('start', () => {
-                    message.channel.send("Now playing: " + queue[0]);
+                    message.channel.send("Now playing: " + queue[0].substr(0, queue[0].length-4));
                 });
 
                 dispatcher.on('finish', () => {
