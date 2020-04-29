@@ -40,7 +40,9 @@ module.exports = {
             }
             fileName = matches[0].item.name;
             queue.push(fileName);
-            message.channel.send("Added to queue: " + fileName.substr(0, fileName.length - 4));
+            if (queue.length !== 1) {
+                message.channel.send("Added to queue: " + fileName.substr(0, fileName.length - 4));
+            }
             const connection = await message.member.voice.channel.join();
             connection.on('error', error => {
                 console.log("error in voice connection");

@@ -3,6 +3,7 @@ const { musicpath } = require('../config.json');
 const files = fs.readdirSync(musicpath).filter(file => file.endsWith('.mp3')).map(function(fileName) {
     return fileName.substr(0, fileName.length - 4)
 });
+const playCommand = require('./play.js');
 module.exports = {
     name: 'list',
     aliases: ['list', 'l'],
@@ -10,20 +11,36 @@ module.exports = {
     usage: '!<list|l> [offset]',
     guildOnly: false,
     args: false,
-	async execute(message, args, changeListPage) {
+	async execute(message, args, queue) {
         if (args.length == 0) {
+            const emojiMap = ['1⃣','2⃣','3⃣','4⃣','5⃣','6⃣','7⃣','8⃣','9⃣','🔟'];
             const filter = (reaction, user) => {
-                return (reaction.emoji.name === '⬅️' || reaction.emoji.name === '➡️') && user.id === message.author.id;
+                return (reaction.emoji.name === '⬅️' || reaction.emoji.name === '➡️' || emojiMap.includes(reaction.emoji.name)) && user.id === message.author.id;
             };
             let listMessage = undefined;
             async function listPages(listPage) {
+                let fileSlice = files.slice((listPage*10) + 0, (listPage*10) + 10);
+                let fileSliceFormatted = fileSlice.map((currElement, index) => {
+                    return (index+1) + '.' + currElement;
+                });
                 if (listMessage === undefined) {
-                    listMessage = await message.channel.send(files.slice((listPage*10) + 0, (listPage*10) + 10));
-                    listMessage.react('⬅️').then(() => listMessage.react('➡️'));
+                    listMessage = await message.channel.send(fileSliceFormatted);
+                    listMessage.react('⬅️')
+                        .then(() => listMessage.react('1⃣'))
+                        .then(() => listMessage.react('2⃣'))
+                        .then(() => listMessage.react('3⃣'))
+                        .then(() => listMessage.react('4⃣'))
+                        .then(() => listMessage.react('5⃣'))
+                        .then(() => listMessage.react('6⃣'))
+                        .then(() => listMessage.react('7⃣'))
+                        .then(() => listMessage.react('8⃣'))
+                        .then(() => listMessage.react('9⃣'))
+                        .then(() => listMessage.react('🔟'))
+                        .then(() => listMessage.react('➡️'));
                 } else {
-                    listMessage.edit(files.slice((listPage*10) + 0, (listPage*10) + 10));
+                    listMessage.edit(fileSliceFormatted);
                 }
-                listMessage.awaitReactions(filter, { max: 1, time: 20000, errors: ['time'] })
+                listMessage.awaitReactions(filter, { max: 1, time: 30000, errors: ['time'] })
                     .then(collected => {
                         const reaction = collected.first();
                         reaction.users.remove(message.author.id);
@@ -31,6 +48,10 @@ module.exports = {
                             listPages(listPage-1);
                         } else if (reaction.emoji.name === '➡️') {
                             listPages(listPage+1);
+                        } else {
+                            itemNumber = emojiMap.indexOf(reaction.emoji.name);
+                            playCommand.execute(message, [fileSlice[itemNumber]], queue);
+                            listPages(listPage);
                         }
                     })
                     .catch(() => {listMessage.delete()});
