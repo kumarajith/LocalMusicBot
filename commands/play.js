@@ -1,6 +1,6 @@
 const fuse = require('fuse.js')
 const fs = require('fs');
-const { musicpath } = require('../config.json');
+const { musicpath, prefix } = require('../config.json');
 const files = fs.readdirSync(musicpath).filter(file => file.endsWith('.mp3')).map(function(fileName) {
     return {name: fileName}
 });
@@ -26,22 +26,30 @@ module.exports = {
     args: true,
     usage: '!<play | p> <search terms>',
 	async execute(message, args, queue) {
-        if (message.author.username.includes("SKNDY") || message.author.username.includes("Suresh")) 
+        const customMessages = {
+            "248830932189052928" : "Lolo <@248830932189052928>"
+        }
+        if (message.author.id in customMessages) 
         {
-            message.reply("Saavuda");
+            message.channel.send(customMessages[message.author.id]);
         }
         if (message.member.voice.channel) {
-            let searchTerm = args.join(' ');
-            let matches = fuseInstance.search(searchTerm);
-            let fileName = '';
-            if (matches.length == 0) {
-                message.channel.send("No matching songs found");
-                return;
-            }
-            fileName = matches[0].item.name;
-            queue.push(fileName);
-            if (queue.length !== 1) {
-                message.channel.send("Added to queue: " + fileName.substr(0, fileName.length - 4));
+            if (args.length > 0) {
+                let searchTerm = args.join(' ');
+                let matches = fuseInstance.search(searchTerm);
+                let fileName = '';
+                if (matches.length == 0) {
+                    message.channel.send("No matching songs found. Use " + prefix + "r to request the song!");
+                    return;
+                }
+                fileName = matches[0].item.name;
+                queue.push(fileName);
+                if (queue.length !== 1) {
+                    message.channel.send("Added to queue: " + fileName.substr(0, fileName.length - 4));
+                }
+            } else {
+                //Skipping, cannot be accessed using command
+                queue.shift();
             }
             const connection = await message.member.voice.channel.join();
             connection.on('error', error => {
@@ -51,7 +59,7 @@ module.exports = {
                 connection.disconnect();
             })
             let dispatcher = connection.dispatcher;
-            if (!dispatcher) {
+            if (!dispatcher || args.length === 0) {
                 dispatcher = connection.play(musicpath + queue[0]);
                 
                 dispatcher.on('start', () => {
