@@ -24,10 +24,9 @@ module.exports = {
     description: 'Play music!',
     guildOnly: true,
     args: true,
-    usage: '!<play | p> <search terms>',
+    usage: `${prefix}<play | p> <search terms>`,
 	async execute(message, args, queue) {
         const customMessages = {
-            "248830932189052928" : "Lolo <@248830932189052928>"
         }
         if (message.author.id in customMessages) 
         {
@@ -61,20 +60,24 @@ module.exports = {
             let dispatcher = connection.dispatcher;
             if (!dispatcher || args.length === 0) {
                 dispatcher = connection.play(musicpath + queue[0]);
-                
-                dispatcher.on('start', () => {
-                    message.channel.send("Now playing: " + queue[0].substr(0, queue[0].length-4));
-                });
-
-                dispatcher.on('finish', () => {
-                    queue.shift();
-                    if (queue.length === 0) {
-                        message.channel.send("Queue empty, disconnecting!");
-                        connection.disconnect();
-                    } else {
-                        dispatcher = connection.play(musicpath + queue[0]);
-                    }
-                });
+                setEvents(dispatcher);
+                function setEvents(dispatcher)
+                {
+                    dispatcher.on('start', () => {
+                        message.channel.send("Now playing: " + queue[0].substr(0, queue[0].length-4));
+                    });
+    
+                    dispatcher.on('finish', () => {
+                        queue.shift();
+                        if (queue.length === 0) {
+                            message.channel.send("Queue empty, disconnecting!");
+                            connection.disconnect();
+                        } else {
+                            dispatcher = connection.play(musicpath + queue[0]);
+                            setEvents(dispatcher)
+                        }
+                    });
+                }
             }
         } else {
             message.channel.send("You need to be in a voice channel to use this!");

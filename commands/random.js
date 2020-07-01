@@ -9,11 +9,12 @@ module.exports = {
     guildOnly: true,
     args: false,
 	async execute(message, args, queue) {
-
         for (let i = files.length - 1; i > 0; i--) {
             const j = Math.floor(Math.random() * (i + 1));
             [files[i], files[j]] = [files[j], files[i]];
         }
+        //hack - the first song will get skipped since no args are passed to play
+        files.unshift(files[0]);
         if (message.member.voice.channel) {
             queue.push(...files);
             playCommand.execute(message, [], queue);

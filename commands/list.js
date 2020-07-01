@@ -1,5 +1,5 @@
 const fs = require('fs');
-const { musicpath } = require('../config.json');
+const { musicpath, prefix } = require('../config.json');
 const files = fs.readdirSync(musicpath).filter(file => file.endsWith('.mp3')).map(function(fileName) {
     return fileName.substr(0, fileName.length - 4)
 });
@@ -8,7 +8,7 @@ module.exports = {
     name: 'list',
     aliases: ['list', 'l'],
     description: 'List all songs! Lists 20 songs in each page',
-    usage: '!<list|l> [offset]',
+    usage: `${prefix}<list|l> [offset]`,
     guildOnly: true,
     args: false,
 	async execute(message, args, queue) {
