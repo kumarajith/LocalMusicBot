@@ -14,3 +14,4 @@ Play music on your computer for others to hear through voice channels
  - stop
  - list
  - request
+ - random
